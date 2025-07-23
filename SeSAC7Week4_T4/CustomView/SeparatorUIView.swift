@@ -6,3 +6,21 @@
 //
 
 import Foundation
+import UIKit
+import SnapKit
+
+class SeparatorUIView: UIView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        
+        backgroundColor = .systemGray
+        
+        self.snp.makeConstraints { make in
+            make.height.equalTo(1)
+        }
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
