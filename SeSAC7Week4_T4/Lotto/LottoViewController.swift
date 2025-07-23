@@ -9,21 +9,42 @@ import UIKit
 
 class LottoViewController: UIViewController {
 
+    static let identifier = "LottoViewController"
+    
+    let orderTextField = UITextField()
+    
+    let noticeLabel = UILabel()
+    
+    let dateLabel = UILabel()
+    
+    let topSeparator = UIView()
+    
+    let resultLabel = UILabel()
+    
+    let resultImageStackView = UIStackView()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
+        configuerHierarchy()
+        configureLayout()
+        configureUI()
+    }
+
+}
+
+extension LottoViewController: SeSACViewControllerProtocol {
+    func configuerHierarchy() {
+        <#code#>
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    func configureLayout() {
+        <#code#>
     }
-    */
-
+    
+    func configureUI() {
+        <#code#>
+    }
+    
+    
 }
