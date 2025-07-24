@@ -96,6 +96,8 @@ class LottoViewController: UIViewController {
         configuerHierarchy()
         configureLayout()
         configureUI()
+        
+        getData(order: order)
     }
     
     // MARK: - Method
@@ -147,7 +149,7 @@ extension LottoViewController: SeSACViewControllerProtocol {
         }
     }
     
-    // MARK: - Configure Constrains
+    // MARK: - Configure Constraints
     func configureLayout() {
         orderTextField.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide).offset(16)
