@@ -20,6 +20,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window = UIWindow(windowScene: windowScene)
         
+        // LottoViewController()
+        // BoxOfficeViewController()
         let viewController = LottoViewController()
         let navigationController = UINavigationController(rootViewController: viewController)
         
