@@ -12,5 +12,5 @@ protocol SeSACViewCellProtocol: SeSACViewProtocol {
     
     func configuerHierarchy()
     func configureLayout()
-    func configureUI(indexPath: DataType)
+    func configureUI(rowData: DataType)
 }
