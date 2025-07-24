@@ -7,23 +7,40 @@
 
 import UIKit
 import SnapKit
+import Alamofire
 
 class LottoViewController: UIViewController {
-
+    
+    // MARK: - Identifier
     static let identifier = "LottoViewController"
     
-    var order = "0"
+    // MARK: - Properties
+    var order: Int = 1181 {
+        didSet {
+            getData(order: order)
+        }
+    }
     
-    let numberRange = Array(1...1181)
+    var numberRange: [Int] = Array(1...1181).reversed()
     
+    var lotto: Lotto = Lotto(drwNoDate: "", drwNo: 0, drwtNo1: 0, drwtNo2: 0, drwtNo3: 0, drwtNo4: 0, drwtNo5: 0, drwtNo6: 0, bnusNo: 0) {
+        didSet {
+            lottoNumbers = [ lotto.drwtNo1, lotto.drwtNo2, lotto.drwtNo3, lotto.drwtNo4, lotto.drwtNo5, lotto.drwtNo6, lotto.bnusNo ]
+            selectOrder()
+        }
+    }
+    
+    var lottoNumbers: [Int] = []
+    
+    // MARK: - Components
     let numberPicker = UIPickerView()
     
-    let orderTextField = {
+    lazy var orderTextField = {
         let textField = UITextField()
         textField.placeholder = "당첨 회차를 선택하세요."
         textField.textAlignment = .center
         textField.borderStyle = .roundedRect
-        
+        textField.inputView = numberPicker
         return textField
     }()
     
@@ -62,8 +79,16 @@ class LottoViewController: UIViewController {
         return stackView
     }()
     
-    var resultViews: [UIView] = []
+    let plusLabel = {
+        let label = UILabel()
+        label.text = "+"
+        label.textAlignment = .center
+        return label
+    }()
     
+    var resultViews: [UIView] = []
+
+    // MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -73,39 +98,47 @@ class LottoViewController: UIViewController {
         configureUI()
     }
     
+    // MARK: - Method
     func configure() {
         numberPicker.delegate = self
         numberPicker.dataSource = self
     }
     
-    func search() {
-        
-        
+    func selectOrder() {
+        configureOrderTextField()
         configureNumberUIView()
         configureDateLabel()
         configureResultLabel()
     }
+    
+    func getData(order: Int) {
+        // 1181회차
+        // https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=1181
+        
+        let url = "https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=\(order)"
+        AF.request(url, method: .get)
+            .validate()
+            .responseDecodable(of: Lotto.self) { response in
+                switch response.result {
+                case .success(let data):
+                    self.lotto = data
+                case .failure(let error):
+                    print(error)
+                }
+            }
+    }
+
 }
 
 extension LottoViewController: SeSACViewControllerProtocol {
+    // MARK: - Configure Hierarchy
     func configuerHierarchy() {
         view.addSubview(orderTextField, noticeLabel, dateLabel, topSeparator, resultLabel, resultStackView)
         
         for i in 1...8 {
             if i == 7 {
                 // 공 타이틀 +, 배경 흰색
-                resultStackView.addArrangedSubview(
-                    {
-                        let label = UILabel()
-                        label.text = "+"
-                        label.textAlignment = .center
-                        
-                        label.snp.makeConstraints { make in
-                            make.size.equalTo(30)
-                        }
-                        return label
-                    }()
-                )
+                resultStackView.addArrangedSubview(plusLabel)
                 continue
             }
             let numberUIView = initNumberUIView()
@@ -114,6 +147,7 @@ extension LottoViewController: SeSACViewControllerProtocol {
         }
     }
     
+    // MARK: - Configure Constrains
     func configureLayout() {
         orderTextField.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide).offset(16)
@@ -146,14 +180,15 @@ extension LottoViewController: SeSACViewControllerProtocol {
             make.horizontalEdges.equalTo(view.safeAreaLayoutGuide).inset(24)
             make.height.equalTo(30)
         }
+        
+        plusLabel.snp.makeConstraints { make in
+            make.size.equalTo(30)
+        }
     }
     
+    // MARK: - Configure UI
     func configureUI() {
         view.backgroundColor = .white
-        
-        orderTextField.inputView = numberPicker
-        
-        search()
     }
     
     func initNumberUIView() -> UIView {
@@ -167,31 +202,35 @@ extension LottoViewController: SeSACViewControllerProtocol {
         view.clipsToBounds = true
         view.layer.cornerRadius = 15
         
-        view.addSubview(
-            {
-                let label = UILabel()
-                label.text = String(Int.random(in: 1...45))
-                label.font = .systemFont(ofSize: 18, weight: .bold)
-                label.textColor = .white
-                label.textAlignment = .center
-                
-                DispatchQueue.main.async {
-                    label.snp.makeConstraints { make in
-                        make.size.equalTo(view)
-                    }
-                }
-                return label
-            }()
-        )
+        view.addSubview(initNumberLabel())
         return view
     }
+    
+    func initNumberLabel() -> UILabel {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 18, weight: .bold)
+        label.textColor = .white
+        label.textAlignment = .center
+        
+        DispatchQueue.main.async {
+            label.snp.makeConstraints { make in
+                make.size.equalTo(30)
+            }
+        }
+        return label
+    }
+    
+    func configureOrderTextField() {
+        orderTextField.text = String(order)
+    }
+    
     func configureNumberUIView() {
-        resultViews.forEach {
-            let random = Int.random(in: 1...45)
-            let label = $0.subviews[0] as? UILabel
-            label?.text = String(random)
+        for i in 0..<resultViews.count {
+            let number = lottoNumbers[i]
+            let label = resultViews[i].subviews[0] as? UILabel
+            label?.text = String(number)
             
-            $0.backgroundColor = switch random {
+            resultViews[i].backgroundColor = switch number {
             case 1..<10:
                     .systemRed
             case 10..<20:
@@ -207,14 +246,15 @@ extension LottoViewController: SeSACViewControllerProtocol {
     }
     
     func configureDateLabel() {
-//        dateLabel.text =
+        dateLabel.text = "\(lotto.drwNoDate) 추첨"
     }
     
     func configureResultLabel() {
-        resultLabel.text = "\(order)회 당첨결과"
+        resultLabel.text = "\(lotto.drwNo)회 당첨결과"
     }
 }
 
+// MARK: - NumberPicker
 extension LottoViewController: UIPickerViewDelegate, UIPickerViewDataSource {
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
@@ -229,10 +269,6 @@ extension LottoViewController: UIPickerViewDelegate, UIPickerViewDataSource {
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        order = String(numberRange[row])
-        orderTextField.text = order
-        search()
-        // 텍스트필드 숫자 표기
-        // 공 숫자 랜덤 변경
+        order = numberRange[row]
     }
 }
